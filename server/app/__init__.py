@@ -1,5 +1,6 @@
 from .models import User, Room, Topic, db, to_dict
 from flask import Flask, session, request
+from flask_cors import cross_origin 
 from flask_migrate import Migrate
 from flask_socketio import SocketIO, join_room, leave_room, emit
 
@@ -22,8 +23,5 @@ db.app = app
 db.init_app(app)
 socketio = SocketIO(app)
 migrate = Migrate(app, db)
-
-#hashmap to convert users to their socketio requests id
-user_to_sid = {}
 
 from app import views

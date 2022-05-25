@@ -1,8 +1,8 @@
-"""added topics
+"""changed room and topic model
 
-Revision ID: 749c8764e2c9
+Revision ID: ac3e2f090a82
 Revises: 
-Create Date: 2022-05-24 02:35:29.365677
+Create Date: 2022-05-24 15:27:31.959416
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '749c8764e2c9'
+revision = 'ac3e2f090a82'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -21,6 +21,8 @@ def upgrade():
     op.create_table('room',
     sa.Column('code', sa.String(length=36), nullable=False),
     sa.Column('host', sa.String(length=64), nullable=True),
+    sa.Column('time_started', sa.DateTime(), nullable=False),
+    sa.Column('time_estimate', sa.Interval(), nullable=False),
     sa.PrimaryKeyConstraint('code')
     )
     op.create_table('topic',
@@ -28,8 +30,6 @@ def upgrade():
     sa.Column('room_code', sa.String(length=36), nullable=True),
     sa.Column('title', sa.String(length=50), nullable=False),
     sa.Column('description', sa.Text(), nullable=True),
-    sa.Column('time_started', sa.DateTime(), nullable=False),
-    sa.Column('time_estimate', sa.Interval(), nullable=False),
     sa.ForeignKeyConstraint(['room_code'], ['room.code'], ),
     sa.PrimaryKeyConstraint('id')
     )

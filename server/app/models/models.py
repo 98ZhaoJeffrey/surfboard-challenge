@@ -1,6 +1,8 @@
+from datetime import datetime, timedelta
+import json
 from flask_sqlalchemy import SQLAlchemy
 from uuid import uuid4
-from datetime import datetime
+
 
 db = SQLAlchemy()
 class User(db.Model):
@@ -19,10 +21,8 @@ class User(db.Model):
 class Room(db.Model):
     __tablename__ = 'room'
     code = db.Column(db.String(36), primary_key=True)
-
     # Multiple topics per room
     topics = db.relationship('Topic', backref='room')
-    
     #Get every user that is in the room for users, but only 1 person can be the host of the room
     users = db.relationship('User', backref='room')
     host = db.Column(db.String(64))
@@ -45,12 +45,16 @@ class Topic(db.Model):
     
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.code = str(uuid4())
-        self.time_started = datetime.now().time()
+        self.id = str(uuid4())
 
     def __str__(self):
         return self.title
-
+    
+    def to_json(self):
+        topic = to_dict(self)
+        topic['time_started'] = self.time_started.strftime("%a, %d %b %Y %H:%M:%S")
+        topic['time_estimate'] = self.time_estimate.total_seconds()
+        return topic
 
 #__dict__ doesnt work for some reason
 def to_dict(obj: object) -> dict:
