@@ -1,10 +1,10 @@
-from app import app, session, request, User, Room, Topic, db, to_dict, cross_origin
+from xml.etree.ElementInclude import include
+from app import app, session, request, User, Room, Topic, db, cross_origin, socketio, join_room, leave_room, emit
 from datetime import datetime, timedelta
-import json
 
 @app.route('/room/create', methods=['POST'])
 @cross_origin()
-def create_room():
+def room_create():
     try:
         data = request.json
         room = Room()
@@ -17,7 +17,6 @@ def create_room():
             time_estimate = timedelta(hours=data['time_estimate']['hours'], minutes=data['time_estimate']['minutes'])
         )
         room.host = user.id
-
         db.session.add(room)
         db.session.add(user)
         db.session.add(topic)
@@ -25,7 +24,8 @@ def create_room():
 
         return ({'status':'Success', 'data': {
             'message': 'Successfully created a room. Redirecting shortly',
-            'topics': topic.to_json()
+            'code': room.code,
+            'id': user.id
         }}, 200)
     except TypeError or AttributeError as e:
         print(e)
@@ -40,7 +40,7 @@ def create_room():
 
 @app.route('/room/join', methods=['POST'])
 @cross_origin()
-def join_room():
+def room_join():
     try:
         data = request.json
         room = Room.query.get(data['code'])
@@ -53,7 +53,7 @@ def join_room():
             topics = [topic.to_json() for topic in topics]
             return ({'status':'Success', 'data': {
                 'message': 'You will be redirected to the room. Please wait a moment.',
-                'topics' : topics
+                'id': user.id
                 }}, 200)
         else:
             return ({'status':'Error', 'data': {
@@ -70,3 +70,26 @@ def join_room():
         return ({'status': 'Error', 'data' : {
             'message': 'There is an error on our end'
         }}, 500)
+
+@socketio.on('connect')
+def connect():
+    try:
+        data = request.args
+        room = data['code']
+        join_room(room)
+        response = {'message': f"{data['name']} has joined the room"}
+        emit('join_chat', response, broadcast=True, include_self=False, to=room)
+    except:
+        print('Error')
+
+@socketio.on('message')
+def message(data):
+    try:
+        name = data['name']
+        room = data['code']
+        message = data['message']
+        id = data['id']
+        response = {'name': name, 'message': message, 'user_id': id}
+        emit('send_message', response, broadcast=True, include_self=False, to=room)
+    except:
+        print('error')

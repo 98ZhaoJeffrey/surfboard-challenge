@@ -16,6 +16,8 @@ import {
   useToast
 } from '@chakra-ui/react';
 import DatePicker from './DatePicker/DatePicker';
+import { useAuth } from '../contexts/AuthProvider';
+import { useNavigate } from 'react-router-dom';
 
 export default function Create() {
   const nameRef = useRef(null);
@@ -24,35 +26,57 @@ export default function Create() {
   const [hours, setHours] = useState(0);
   const [minutes, setMinutes] = useState(0);
   const toast = useToast();
+  const { setUser } = useAuth();
+  const navigate = useNavigate()
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    const body = JSON.stringify({
-      'name': nameRef.current.value,
-      'title': topicRef.current.value,
-      'time_started': date.toUTCString(),
-      'time_estimate':{
-        'hours': parseInt(hours),
-        'minutes': parseInt(minutes)
+    try{
+      if(!(nameRef.current.value && topicRef.current.value)) return;
+      e.preventDefault();
+      const body = JSON.stringify({
+        'name': nameRef.current.value,
+        'title': topicRef.current.value,
+        'time_started': date.toUTCString(),
+        'time_estimate':{
+          'hours': parseInt(hours),
+          'minutes': parseInt(minutes)
+        }
+      });
+
+      const options = {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        mode: 'cors',
+        body: body,
+      };
+
+      const response = await fetch('http://127.0.0.1:5000/room/create', options);
+      const result = await response.json()
+      toast({
+        title: result.status,
+        description: result.data.message,
+        status: result.status.toLowerCase(),
+        duration: 9000,
+        isClosable: true,
+      });
+      if(result.status === 'Success'){
+        setUser({
+          'name': nameRef.current.value,
+          'roomcode': result.data.code,
+          'id': result.data.id
+        })
+        setTimeout(() => navigate('/meeting'), 3000);
       }
-    });
-
-    const options = {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      mode: 'cors',
-      body: body,
-    };
-
-    const response = await fetch('http://127.0.0.1:5000/room/create', options);
-    const result = await response.json()
-    toast({
-      title: result.status,
-      description: result.data.message,
-      status: result.status.toLowerCase(),
-      duration: 9000,
-      isClosable: true,
-    });
+    }
+    catch (error){
+      toast({
+        title: 'Error',
+        description: 'Something went wrong. Please try again later.',
+        status: 'error',
+        duration: 9000,
+        isClosable: true,
+      });
+    }
   }
 
   return (
