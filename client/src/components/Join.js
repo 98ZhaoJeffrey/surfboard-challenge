@@ -50,7 +50,8 @@ import {
           setUser({
             'id': result.data.id, 
             'name': nameRef.current.value, 
-            'roomcode': codeRef.current.value
+            'roomcode': codeRef.current.value,
+            'hostId': result.data.hostId
           });
           setTimeout(() => navigate('/meeting'), 3000);
         }

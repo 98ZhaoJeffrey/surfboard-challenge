@@ -24,7 +24,8 @@ def room_create():
         return ({'status':'Success', 'data': {
             'message': 'Successfully created a room. Redirecting shortly',
             'code': room.code,
-            'id': user.id
+            'id': user.id,
+            'hostId': room.host
         }}, 200)
     except TypeError or AttributeError as e:
         print(e)
@@ -35,7 +36,7 @@ def room_create():
         print(e)
         return ({'status': 'Error', 'data' : {
             'message': 'There is an error on our end'
-        }},500)
+        }}, 500)
 
 @app.route('/room/join', methods=['POST'])
 @cross_origin()
@@ -50,7 +51,8 @@ def room_join():
 
             return ({'status':'Success', 'data': {
                 'message': 'You will be redirected to the room. Please wait a moment.',
-                'id': user.id
+                'id': user.id,
+                'hostId': room.host
                 }}, 200)
         else:
             return ({'status':'Error', 'data': {
@@ -68,18 +70,15 @@ def room_join():
             'message': 'There is an error on our end'
         }}, 500)
 
-@app.route('/room/topics', methods=['GET'])
+@app.route('/room/topics', methods=['POST'])
 @cross_origin()
-def topics():
+def get_topics():
     try:
         data = request.json
         topics = Topic.query.filter_by(room_code=data['code']).all()
-        topics = [topic.to_json() for topic in topics]
-
-        return ({'status':'Success', 'data': {
-            'message': 'Successfully created a room. Redirecting shortly',
-            'topics': topics
-        }}, 200)
+        response = {'topics': [topic.to_json() for topic in topics]} 
+        print(response)
+        return ({'status': 'Succeess', 'data' : response}, 200)
     except:
         pass
 
@@ -89,7 +88,7 @@ def connect():
         data = request.args
         room = data['code']
         join_room(room)
-        response = {'message': f"{data['name']} has joined the room"}
+        response = {'user_id': 'admin', 'message': f"{data['name']} has joined the room"}
         emit('join_chat', response, broadcast=True, include_self=False, to=room)
     except:
         print('Error')
@@ -106,7 +105,38 @@ def message(data):
     except:
         print('error')
 
-@socketio.on('topic')
+@socketio.on('get_topics')
+def get_topics(data):
+    try:
+        data = request.json
+        topics = Topic.query.filter_by(room_code=data['code']).all()
+        response = {'topics': [topic.to_json() for topic in topics]} 
+        emit('topics', response, to=request.sid)
+    except:
+        pass
+
+@socketio.on('add_topics')
+def add_topic(data):
+    try:
+        print(data)
+        topic = Topic(
+            title=data['title'], 
+            description=data['description'], 
+            room_code=data['code'], 
+            time_started = datetime.strptime(data['time_started'], "%a, %d %b %Y %H:%M:%S %Z"), 
+            time_estimate = timedelta(hours=data['time_estimate']['hours'], minutes=data['time_estimate']['minutes'])
+        )
+        print(topic)
+        db.session.add(topic)
+        db.session.commit()
+        topics = Topic.query.filter_by(room_code=data['code']).all()
+        response = {'topics': [topic.to_json() for topic in topics]} 
+        print(response)
+        emit('topics', response, boradcast=True, to=data['code'])
+    except:
+        print('Error')
+
+@socketio.on('edit_topic')
 def edit_topic(data):
     try:
         topic = Topic.query.get(id=data['topic_id'])

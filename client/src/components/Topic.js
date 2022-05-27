@@ -12,7 +12,7 @@ import Countdown from 'react-countdown';
 const Completionist = () => <Text>The topic is finished</Text>
 
 const Topic = (props) => {
-
+    
     return (
         <Box w='100%' h='100%'>
             <Flex flexDirection='row' alignItems='center' my='4'>
@@ -27,10 +27,15 @@ const Topic = (props) => {
             </Flex>
             <Flex>
                 <Text mr='2'>Time:</Text>
-                <Countdown date={props.start.getTime() + props.duration}>
-                    <Completionist/>
-                </Countdown>
+                { props.start > Date.now() ?
+                    <Text >This topic hasn't started yet.
+                    </Text> :
+                    <Countdown date={props.start + props.duration * 1000}>
+                        <Completionist/>
+                    </Countdown>   
+                }
             </Flex>
+            <Text>Start Time: {new Date(props.start).toLocaleString()}</Text>
         </Box>
     );
 };

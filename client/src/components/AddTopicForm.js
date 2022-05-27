@@ -13,61 +13,45 @@ import {
   NumberInputStepper,
   NumberIncrementStepper,
   NumberDecrementStepper,
+  Textarea,
   useToast
 } from '@chakra-ui/react';
 import DatePicker from './DatePicker/DatePicker';
+import { useSocket } from '../contexts/SocketProvider';
 import { useAuth } from '../contexts/AuthProvider';
-import { useNavigate } from 'react-router-dom';
 
-export default function Create() {
-  const nameRef = useRef(null);
+export default function AddTopicForm() {
+  const [descriptionValue, setDescriptionValue] = useState('');
   const topicRef = useRef(null);
   const [date, setDate] = useState(new Date());
   const [hours, setHours] = useState(0);
   const [minutes, setMinutes] = useState(0);
   const toast = useToast();
-  const { setUser } = useAuth();
-  const navigate = useNavigate()
+  const socket = useSocket();
+  const { user } = useAuth()
 
   const handleSubmit = async (e) => {
     try{
-      if(!(nameRef.current.value && topicRef.current.value)) return;
+      if(!topicRef.current.value) return;
       e.preventDefault();
-      const body = JSON.stringify({
-        'name': nameRef.current.value,
+    
+      socket.emit('add_topics', {
         'title': topicRef.current.value,
+        'description': descriptionValue,
+        'code': user.roomcode,
         'time_started': date.toUTCString(),
         'time_estimate':{
           'hours': parseInt(hours),
           'minutes': parseInt(minutes)
         }
       });
-
-      const options = {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        mode: 'cors',
-        body: body,
-      };
-
-      const response = await fetch('http://127.0.0.1:5000/room/create', options);
-      const result = await response.json()
       toast({
-        title: result.status,
-        description: result.data.message,
-        status: result.status.toLowerCase(),
+        title: 'Success',
+        description: 'Added topic',
+        status: 'success',
         duration: 9000,
         isClosable: true,
       });
-      if(result.status === 'Success'){
-        setUser({
-          'name': nameRef.current.value,
-          'roomcode': result.data.code,
-          'id': result.data.id,
-          'hostId': result.data.hostId 
-        })
-        setTimeout(() => navigate('/meeting'), 3000);
-      }
     }
     catch (error){
       toast({
@@ -94,14 +78,18 @@ export default function Create() {
           p={8}>
           <form onSubmit={handleSubmit}>
            <Stack spacing={4}>
-            <Heading fontSize={'2xl'} alignSelf='center'>Create a meeting</Heading>
-              <FormControl id="name">
-                <FormLabel>Name</FormLabel>
-                <Input type="text" ref={nameRef}/>
-              </FormControl>
               <FormControl id="topic">
-                <FormLabel>First topic</FormLabel>
+                <FormLabel>Topic</FormLabel>
                 <Input type="text" ref={topicRef}/>
+              </FormControl>
+              <FormControl id="description">
+                <FormLabel>Description</FormLabel>
+                <Textarea 
+                    placeholder="Topic's description" 
+                    resize='vertical' 
+                    value={descriptionValue}
+                    onChange={(e) => setDescriptionValue(e.target.value)}
+                />
               </FormControl>
               <FormControl id="Starting Time">
                 <FormLabel>Starting Time</FormLabel>
@@ -139,7 +127,7 @@ export default function Create() {
                 type='submit'
                 w='100%'
               >
-                Create Room
+                Add topic
               </Button>  
             </Stack>
           </form>

@@ -6,9 +6,8 @@ import {
   Routes,
   Route,
 } from 'react-router-dom';
-import Window from './components/Window';
-import Home from './pages/Home';
 import Meeting from './pages/Meeting';
+import Home from './pages/Home';
 import { SocketProvider } from './contexts/SocketProvider';
 import { AuthProvider } from './contexts/AuthProvider';
 import PrivateRoute from './components/PrivateRoute';
@@ -23,7 +22,7 @@ function App() {
               <Route path="/" element={<Home/>} />
               <Route path="/meeting" element={
                 <PrivateRoute>
-                  <Meeting children={<Window/>}/>
+                  <Meeting/>
                 </PrivateRoute>
               } />
             </Routes>

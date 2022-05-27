@@ -7,6 +7,9 @@ import {
     InputRightElement,
     InputGroup,
     VStack,
+    HStack,
+    Divider,
+    Text
 } from '@chakra-ui/react';
 import Message from './Message';
 import { useSocket } from '../contexts/SocketProvider';
@@ -53,6 +56,21 @@ const Chat = () => {
         <Flex w='100%' h='full' flexDirection='column' id='chat'>
             <VStack overflow='auto' w='100%'>
                 {messages.map((message, id) => {
+                    if (message.user_id === 'admin'){
+                        return (
+                            <HStack key={id} w='100%'>
+                                <Divider />
+                                    <Text 
+                                        fontSize="sm" 
+                                        whiteSpace="nowrap" 
+                                        color="muted"
+                                    >
+                                        {message.message}
+                                    </Text>
+                                <Divider />
+                            </HStack>
+                        )
+                    }
                     return (
                         <Message 
                             key={id} 

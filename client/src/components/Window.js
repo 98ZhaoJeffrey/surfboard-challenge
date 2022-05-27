@@ -9,9 +9,7 @@ import {
 import Topic from './Topic';
 import Chat from './Chat';
 
-
-const Window = () => {
-
+const Window = (props) => {
     return (
         <Box>
             <Tabs isFitted variant='enclosed'>
@@ -22,12 +20,12 @@ const Window = () => {
 
                 <TabPanels>
                     <TabPanel >
-                        <Topic 
-                            title='My Title' 
-                            description='My cool descripition'
-                            start={new Date('2022-05-27 03:42:24')}
-                            duration={5000}
-                        />
+                        {props.topic && <Topic
+                            title={props.topic.title} 
+                            description={props.topic.description}
+                            start={new Date(props.topic.time_started).getTime()}
+                            duration={props.topic.time_estimate}
+                        />}
                     </TabPanel>
                     <TabPanel h='80vh'>
                         <Chat/>
