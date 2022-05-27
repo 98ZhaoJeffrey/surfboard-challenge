@@ -13,7 +13,7 @@ export function SocketProvider({ children }) {
   const { user } = useAuth();
 
   useEffect(() => {
-    if(!user) return;
+    if(user === null) return;
     if(socket) return;
       const newSocket = io(
           'http://localhost:5000', {query:{ 
@@ -23,7 +23,7 @@ export function SocketProvider({ children }) {
           }});
       setSocket(newSocket)
 
-    return () => {socket.close()}
+    return () => {newSocket.disconnect()}
   }, [user])
 
   return (

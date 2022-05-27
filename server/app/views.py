@@ -1,4 +1,3 @@
-from xml.etree.ElementInclude import include
 from app import app, session, request, User, Room, Topic, db, cross_origin, socketio, join_room, leave_room, emit
 from datetime import datetime, timedelta
 
@@ -49,8 +48,6 @@ def room_join():
             db.session.add(user)
             db.session.commit()
 
-            topics = Topic.query.filter_by(room_code=data['code']).all()
-            topics = [topic.to_json() for topic in topics]
             return ({'status':'Success', 'data': {
                 'message': 'You will be redirected to the room. Please wait a moment.',
                 'id': user.id
@@ -71,6 +68,21 @@ def room_join():
             'message': 'There is an error on our end'
         }}, 500)
 
+@app.route('/room/topics', methods=['GET'])
+@cross_origin()
+def topics():
+    try:
+        data = request.json
+        topics = Topic.query.filter_by(room_code=data['code']).all()
+        topics = [topic.to_json() for topic in topics]
+
+        return ({'status':'Success', 'data': {
+            'message': 'Successfully created a room. Redirecting shortly',
+            'topics': topics
+        }}, 200)
+    except:
+        pass
+
 @socketio.on('connect')
 def connect():
     try:
@@ -90,6 +102,24 @@ def message(data):
         message = data['message']
         id = data['id']
         response = {'name': name, 'message': message, 'user_id': id}
-        emit('send_message', response, broadcast=True, include_self=False, to=room)
+        emit('send_message', response, broadcast=True, to=room)
     except:
         print('error')
+
+@socketio.on('topic')
+def edit_topic(data):
+    try:
+        topic = Topic.query.get(id=data['topic_id'])
+        room = Room.query.get(code=data['code'])
+        if(data['operation'] == 'edit'):
+            topic.title = data['title']
+            topic.description = data['description']
+        else:
+            db.session.delete(topic)
+        db.session.commit()
+        topics = Topic.query.filter_by(room_code=data['code']).all()
+        topics = [topic.to_json() for topic in topics]
+        response = {'topics': topics}
+        emit('update_topics', response, broadcast=True, to=room)
+    except:
+        print('Error')

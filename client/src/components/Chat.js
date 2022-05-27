@@ -30,12 +30,15 @@ const Chat = () => {
             setMessages(prev => [...prev, data]);
         });
 
+        return () => {
+            socket.off('join_chat')
+            socket.off('send_message')
+        }
     }, [])
 
     const sendMessage = () => {
         const message = inputRef.current.value;
         if(message){
-            setMessages(prev => [...prev, {'message': message, 'user_id': user.id, 'name': user.name}]);
             socket.emit('message', {
                 'code': user.roomcode,
                 'name': user.name,
