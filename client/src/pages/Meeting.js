@@ -152,8 +152,8 @@ export default function Meeting() {
           <Button w='100%' my='2' onClick={addModal.onOpen}>
             Add topic
           </Button>
-          {meetingTopics.map((topic, id) =>{ return (
-              <NavItem py="2" key={id} onClick={() => setSelectedTopic(topic)}>
+          {meetingTopics.map((topic) =>{ return (
+              <NavItem py="2" key={topic.id} onClick={() => setSelectedTopic(topic)}>
                   {topic.title}
               </NavItem>
           )})}

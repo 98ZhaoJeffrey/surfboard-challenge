@@ -18,27 +18,25 @@ import {
 } from '@chakra-ui/react';
 import DatePicker from './DatePicker/DatePicker';
 import { useSocket } from '../contexts/SocketProvider';
-import { useAuth } from '../contexts/AuthProvider';
 
-export default function AddTopicForm() {
-  const [descriptionValue, setDescriptionValue] = useState('');
+export default function EditTopicForm(props) {
+  const [descriptionValue, setDescriptionValue] = useState(props.description);
   const topicRef = useRef(null);
-  const [date, setDate] = useState(new Date());
-  const [hours, setHours] = useState(0);
-  const [minutes, setMinutes] = useState(0);
+  const [date, setDate] = useState(new Date(props.date));
+  const [hours, setHours] = useState(props.hours);
+  const [minutes, setMinutes] = useState(props.minutes);
   const toast = useToast();
   const socket = useSocket();
-  const { user } = useAuth()
 
   const handleSubmit = async (e) => {
     try{
       if(!topicRef.current.value) return;
       e.preventDefault();
-    
-      socket.emit('add_topic', {
+      console.log(date.toUTCString())
+      socket.emit('edit_topic', {
+        'topic_id': props.topicId,
         'title': topicRef.current.value,
         'description': descriptionValue,
-        'code': user.roomcode,
         'time_started': date.toUTCString(),
         'time_estimate':{
           'hours': parseInt(hours),
@@ -47,7 +45,7 @@ export default function AddTopicForm() {
       });
       toast({
         title: 'Success',
-        description: 'Added topic',
+        description: 'Editted topic',
         status: 'success',
         duration: 9000,
         isClosable: true,
@@ -79,8 +77,8 @@ export default function AddTopicForm() {
           <form onSubmit={handleSubmit}>
            <Stack spacing={4}>
               <FormControl id="topic">
-                <FormLabel>Topic</FormLabel>
-                <Input type="text" ref={topicRef}/>
+                <FormLabel>Topic Name</FormLabel>
+                <Input type="text" ref={topicRef} defaultValue={props.title}/>
               </FormControl>
               <FormControl id="description">
                 <FormLabel>Description</FormLabel>
@@ -123,11 +121,11 @@ export default function AddTopicForm() {
                 </FormControl>
               </Flex>
               <Button
-                colorScheme='teal'
+                colorScheme='purple'
                 type='submit'
                 w='100%'
               >
-                Add topic
+                Edit topic
               </Button>  
             </Stack>
           </form>

@@ -1,17 +1,23 @@
+import { useDisclosure } from '@chakra-ui/react';
 import {
     Box,
     Heading,
     Text,
     Flex,
     IconButton,
-    Input 
 } from '@chakra-ui/react';
-import { MdEdit } from 'react-icons/md';
+import { MdEdit, MdDeleteForever } from 'react-icons/md';
 import Countdown from 'react-countdown';
+import EditTopicForm from './EditTopicForm';
+import TopicsModal from './TopicsModal';
+import DeleteTopicForm from './DeleteTopicForm';
 
 const Completionist = () => <Text>The topic is finished</Text>
 
 const Topic = (props) => {
+
+    const editModal = useDisclosure();
+    const deleteModal = useDisclosure();
     
     return (
         <Box w='100%' h='100%'>
@@ -19,12 +25,14 @@ const Topic = (props) => {
                 <Heading as='h2'>
                     {props.title}
                 </Heading>
-                <IconButton ml='4' colorScheme='purple' icon={<MdEdit/>}/>
+                <IconButton 
+                    ml='4' 
+                    colorScheme='purple' 
+                    icon={<MdEdit/>}
+                    onClick={editModal.onOpen}
+                />
             </Flex>
-            <Flex flexDirection='row' alignItems='center' my='4'>
-                <Text color='gray.500'>{props.description}</Text>
-                <IconButton size='sm' ml='2' mt='2' colorScheme='teal' variant='ghost' icon={<MdEdit/>}/>
-            </Flex>
+            <Text color='gray.500' my='4'>{props.description}</Text>
             <Flex>
                 <Text mr='2'>Time:</Text>
                 { props.start > Date.now() ?
@@ -35,7 +43,39 @@ const Topic = (props) => {
                     </Countdown>   
                 }
             </Flex>
-            <Text>Start Time: {new Date(props.start).toLocaleString()}</Text>
+            <Text>
+                Start Time: 
+                {new Date(props.start).toLocaleString({ timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone})}
+            </Text>
+            <TopicsModal
+                disclosure={editModal} 
+                title={`Editting ${props.title}`} 
+                id="edit" 
+                children={<EditTopicForm
+                    topicId={props.topicId} 
+                    title={props.title}
+                    date={props.start}
+                    description={props.description}
+                    hours={~~(props.duration / 3600)}
+                    minutes={(props.duration % 3600) / 60 }
+                />}
+            />
+            <IconButton mt='4'
+                icon={<MdDeleteForever/>}
+                aria-label='Delete topic'
+                colorScheme='red'
+                variant='outline'
+                onClick={deleteModal.onOpen}
+            />
+            <TopicsModal
+                disclosure={deleteModal} 
+                title={`Delete ${props.title}?`} 
+                id="delete" 
+                children={<DeleteTopicForm
+                    topicId={props.topicId} 
+                    title={props.title}
+                />}
+            />
         </Box>
     );
 };

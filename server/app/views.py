@@ -77,7 +77,7 @@ def get_topics():
         data = request.json
         topics = Topic.query.filter_by(room_code=data['code']).all()
         response = {'topics': [topic.to_json() for topic in topics]} 
-        print(response)
+        #print(response)
         return ({'status': 'Succeess', 'data' : response}, 200)
     except:
         pass
@@ -115,7 +115,7 @@ def get_topics(data):
     except:
         pass
 
-@socketio.on('add_topics')
+@socketio.on('add_topic')
 def add_topic(data):
     try:
         print(data)
@@ -131,7 +131,7 @@ def add_topic(data):
         db.session.commit()
         topics = Topic.query.filter_by(room_code=data['code']).all()
         response = {'topics': [topic.to_json() for topic in topics]} 
-        print(response)
+        #print(response)
         emit('topics', response, boradcast=True, to=data['code'])
     except:
         print('Error')
@@ -139,17 +139,31 @@ def add_topic(data):
 @socketio.on('edit_topic')
 def edit_topic(data):
     try:
-        topic = Topic.query.get(id=data['topic_id'])
-        room = Room.query.get(code=data['code'])
-        if(data['operation'] == 'edit'):
-            topic.title = data['title']
-            topic.description = data['description']
-        else:
-            db.session.delete(topic)
+        topic = Topic.query.get(data['topic_id'])
+        room = topic.room_code
+        topic.title = data['title']
+        topic.description = data['description']
+        topic.time_started = datetime.strptime(data['time_started'], "%a, %d %b %Y %H:%M:%S %Z")
+        topic.time_estimate = timedelta(hours=data['time_estimate']['hours'], minutes=data['time_estimate']['minutes'])
+
         db.session.commit()
-        topics = Topic.query.filter_by(room_code=data['code']).all()
+        topics = Topic.query.filter_by(room_code=room).all()
         topics = [topic.to_json() for topic in topics]
         response = {'topics': topics}
-        emit('update_topics', response, broadcast=True, to=room)
-    except:
-        print('Error')
+        emit('topics', response, broadcast=True, to=room)
+    except KeyError as e:
+        print(e)
+
+@socketio.on('delete_topic')
+def delete_topic(data):
+    try:
+        topic = Topic.query.get(data['topic_id'])
+        room = topic.room_code
+        db.session.delete(topic)
+        db.session.commit()
+        topics = Topic.query.filter_by(room_code=room).all()
+        topics = [topic.to_json() for topic in topics]
+        response = {'topics': topics}
+        emit('topics', response, broadcast=True, to=room)
+    except KeyError as e:
+        print(e)

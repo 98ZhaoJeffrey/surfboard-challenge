@@ -21,6 +21,7 @@ const Window = (props) => {
                 <TabPanels>
                     <TabPanel >
                         {props.topic && <Topic
+                            topicId={props.topic.id}
                             title={props.topic.title} 
                             description={props.topic.description}
                             start={new Date(props.topic.time_started).getTime()}
