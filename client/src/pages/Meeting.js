@@ -11,11 +11,19 @@ import {
   IconButton,
   Text,
   useDisclosure,
-  Button
+  Button,
+  MenuButton,
+  Menu,
+  MenuItem,
+  MenuList,
+  HStack,
+  useClipboard,
+  useToast
 } from "@chakra-ui/react";
 import { FiMenu } from "react-icons/fi";
 import {  
   MdKeyboardArrowRight,
+  MdKeyboardArrowDown,
   MdTopic
 } from "react-icons/md";
 import { useAuth } from "../contexts/AuthProvider";
@@ -28,11 +36,14 @@ export default function Meeting() {
   const sidebar = useDisclosure();
   const topics = useDisclosure();
   const addModal = useDisclosure();
-  const { user } = useAuth()
+  const { user, setUser } = useAuth()
   const socket = useSocket();
 
   const [meetingTopics, setMeetingTopics] = useState([]);
   const [selectedTopic, setSelectedTopic] = useState(null);
+
+  const { onCopy } = useClipboard(`Join the room with code: ${user.roomcode}`);
+  const toast = useToast();
 
   useEffect(() => {
     const getData = async () => {
@@ -59,15 +70,26 @@ export default function Meeting() {
 
   useEffect(() => {
     socket.on('topics', (data) => {
-      console.log(data)
       setMeetingTopics(data['topics'])
 
       if(data['topics'] !== []){
         setSelectedTopic(data['topics'][0])
       }
-
     });
-    return () => socket.off('topics');
+
+    socket.on('errors', (data) => {
+      toast({
+        title: 'Error',
+        description: data.message,
+        status: 'error',
+        duration: 9000,
+        isClosable: true,
+    });
+    })
+    return () => {
+      socket.off('topics');
+      socket.off('errors')
+    }
   }, [])
 
   const NavItem = (props) => {
@@ -149,9 +171,11 @@ export default function Meeting() {
         </NavItem>
         
         <Collapse in={topics.isOpen}>
+        {user.id === user.hostId &&
           <Button w='100%' my='2' onClick={addModal.onOpen}>
             Add topic
           </Button>
+        }
           {meetingTopics.map((topic) =>{ return (
               <NavItem py="2" key={topic.id} onClick={() => setSelectedTopic(topic)}>
                   {topic.title}
@@ -198,13 +222,27 @@ export default function Meeting() {
             icon={<FiMenu />}
             size="sm"
           />
-            <Avatar
-              ml="4"
-              size="sm"
-              name={user.name}
-              bg='gray.300'
-              cursor="pointer"
-            />
+        <Menu>
+          <MenuButton as='button'>
+            <HStack>
+              <Avatar
+                ml="4"
+                size="sm"
+                name={user.name}
+                bg='gray.300'
+                cursor="pointer"
+              />
+               <Text fontSize="sm">{user.name}</Text>
+              <Box display={{ base: 'none', md: 'flex' }}>
+                <MdKeyboardArrowDown />
+              </Box>
+            </HStack>
+          </MenuButton>
+          <MenuList>
+            <MenuItem onClick={onCopy}>Invite users</MenuItem>
+            <MenuItem onClick={() => setUser(null)}>Logout</MenuItem>
+          </MenuList>
+        </Menu>
         </Flex>
         <Box as="main" px="4" h='90vh'>
           <Window topic={selectedTopic}/>

@@ -11,6 +11,7 @@ import Countdown from 'react-countdown';
 import EditTopicForm from './EditTopicForm';
 import TopicsModal from './TopicsModal';
 import DeleteTopicForm from './DeleteTopicForm';
+import { useAuth } from '../contexts/AuthProvider';
 
 const Completionist = () => <Text>The topic is finished</Text>
 
@@ -18,6 +19,7 @@ const Topic = (props) => {
 
     const editModal = useDisclosure();
     const deleteModal = useDisclosure();
+    const { user } = useAuth()
     
     return (
         <Box w='100%' h='100%'>
@@ -25,12 +27,13 @@ const Topic = (props) => {
                 <Heading as='h2'>
                     {props.title}
                 </Heading>
+                { user.id === user.hostId &&
                 <IconButton 
                     ml='4' 
                     colorScheme='purple' 
                     icon={<MdEdit/>}
                     onClick={editModal.onOpen}
-                />
+                />}
             </Flex>
             <Text color='gray.500' my='4'>{props.description}</Text>
             <Flex>
@@ -60,13 +63,14 @@ const Topic = (props) => {
                     minutes={(props.duration % 3600) / 60 }
                 />}
             />
+            { user.id === user.hostId &&
             <IconButton mt='4'
                 icon={<MdDeleteForever/>}
                 aria-label='Delete topic'
                 colorScheme='red'
                 variant='outline'
                 onClick={deleteModal.onOpen}
-            />
+            /> }
             <TopicsModal
                 disclosure={deleteModal} 
                 title={`Delete ${props.title}?`} 

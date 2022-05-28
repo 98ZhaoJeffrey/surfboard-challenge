@@ -52,6 +52,10 @@ const Chat = () => {
         }
     }
 
+    useEffect(() => {
+        console.log(messages)
+    }, [messages])
+
     return (
         <Flex w='100%' h='full' flexDirection='column' id='chat'>
             <VStack overflow='auto' w='100%'>

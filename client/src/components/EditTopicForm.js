@@ -7,14 +7,12 @@ import {
   Input,
   Stack,
   Button,
-  Heading,
   NumberInput,
   NumberInputField,
   NumberInputStepper,
   NumberIncrementStepper,
   NumberDecrementStepper,
   Textarea,
-  useToast
 } from '@chakra-ui/react';
 import DatePicker from './DatePicker/DatePicker';
 import { useSocket } from '../contexts/SocketProvider';
@@ -25,7 +23,6 @@ export default function EditTopicForm(props) {
   const [date, setDate] = useState(new Date(props.date));
   const [hours, setHours] = useState(props.hours);
   const [minutes, setMinutes] = useState(props.minutes);
-  const toast = useToast();
   const socket = useSocket();
 
   const handleSubmit = async (e) => {
@@ -43,22 +40,9 @@ export default function EditTopicForm(props) {
           'minutes': parseInt(minutes)
         }
       });
-      toast({
-        title: 'Success',
-        description: 'Editted topic',
-        status: 'success',
-        duration: 9000,
-        isClosable: true,
-      });
     }
     catch (error){
-      toast({
-        title: 'Error',
-        description: 'Something went wrong. Please try again later.',
-        status: 'error',
-        duration: 9000,
-        isClosable: true,
-      });
+      console.log(error)
     }
   }
 

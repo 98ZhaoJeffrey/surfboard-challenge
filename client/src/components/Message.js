@@ -2,7 +2,8 @@ import {
     Flex,
     Box,
     Text,
-    Avatar
+    Avatar,
+    Tooltip
 } from '@chakra-ui/react';
 
 const Message = (props) => {
@@ -27,7 +28,9 @@ const Message = (props) => {
             >
                 <Text overflowWrap="break-word">{props.message}</Text>
             </Box>
-            <Avatar size='sm' name={props.name} description={`${props.name} profile picture`}/>
+            <Tooltip label={props.name}>
+                <Avatar size='sm' name={props.name} description={`${props.name} profile picture`}/>
+            </Tooltip>
         </Flex>
     )
 }

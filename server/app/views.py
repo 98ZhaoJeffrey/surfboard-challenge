@@ -91,7 +91,7 @@ def connect():
         response = {'user_id': 'admin', 'message': f"{data['name']} has joined the room"}
         emit('join_chat', response, broadcast=True, include_self=False, to=room)
     except:
-        print('Error')
+        emit('error', {'message': 'Could not join room. Try joining again'}, to=request.sid)
 
 @socketio.on('message')
 def message(data):
@@ -103,7 +103,8 @@ def message(data):
         response = {'name': name, 'message': message, 'user_id': id}
         emit('send_message', response, broadcast=True, to=room)
     except:
-        print('error')
+        print('help here')
+        emit('error', {'message': 'Could not send message. Try again'}, to=request.sid)
 
 @socketio.on('get_topics')
 def get_topics(data):
@@ -113,7 +114,7 @@ def get_topics(data):
         response = {'topics': [topic.to_json() for topic in topics]} 
         emit('topics', response, to=request.sid)
     except:
-        pass
+        emit('error', {'message': 'Could not get topics. Try rejoining again'}, to=request.sid)
 
 @socketio.on('add_topic')
 def add_topic(data):
@@ -134,7 +135,7 @@ def add_topic(data):
         #print(response)
         emit('topics', response, boradcast=True, to=data['code'])
     except:
-        print('Error')
+        emit('error', {'message': 'Could not add topic. Try again'}, to=request.sid)
 
 @socketio.on('edit_topic')
 def edit_topic(data):
@@ -151,8 +152,8 @@ def edit_topic(data):
         topics = [topic.to_json() for topic in topics]
         response = {'topics': topics}
         emit('topics', response, broadcast=True, to=room)
-    except KeyError as e:
-        print(e)
+    except:
+        emit('error', {'message': 'Could not edit topic. Try again'}, to=request.sid)
 
 @socketio.on('delete_topic')
 def delete_topic(data):
@@ -165,5 +166,5 @@ def delete_topic(data):
         topics = [topic.to_json() for topic in topics]
         response = {'topics': topics}
         emit('topics', response, broadcast=True, to=room)
-    except KeyError as e:
-        print(e)
+    except:
+        emit('error', {'message': 'Could not delete topic. Try again'}, to=request.sid)

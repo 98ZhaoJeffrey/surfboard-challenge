@@ -13,8 +13,7 @@ import {
   NumberInputStepper,
   NumberIncrementStepper,
   NumberDecrementStepper,
-  Textarea,
-  useToast
+  Textarea
 } from '@chakra-ui/react';
 import DatePicker from './DatePicker/DatePicker';
 import { useSocket } from '../contexts/SocketProvider';
@@ -26,7 +25,6 @@ export default function AddTopicForm() {
   const [date, setDate] = useState(new Date());
   const [hours, setHours] = useState(0);
   const [minutes, setMinutes] = useState(0);
-  const toast = useToast();
   const socket = useSocket();
   const { user } = useAuth()
 
@@ -45,22 +43,9 @@ export default function AddTopicForm() {
           'minutes': parseInt(minutes)
         }
       });
-      toast({
-        title: 'Success',
-        description: 'Added topic',
-        status: 'success',
-        duration: 9000,
-        isClosable: true,
-      });
     }
     catch (error){
-      toast({
-        title: 'Error',
-        description: 'Something went wrong. Please try again later.',
-        status: 'error',
-        duration: 9000,
-        isClosable: true,
-      });
+      console.log(error)
     }
   }
 

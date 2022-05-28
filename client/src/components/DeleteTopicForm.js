@@ -6,13 +6,11 @@ import {
   Input,
   Stack,
   Button,
-  Text,
-  useToast
+  Text
 } from '@chakra-ui/react';
 import { useSocket } from '../contexts/SocketProvider';
 
 const DeleteTopicForm = (props) => {
-    const toast = useToast();
     const socket = useSocket();
 
     const handleSubmit = async (e) => {
@@ -21,22 +19,9 @@ const DeleteTopicForm = (props) => {
         socket.emit('delete_topic', {
             'topic_id': props.topicId
         });
-        toast({
-            title: 'Success',
-            description: 'Deleted topic',
-            status: 'success',
-            duration: 9000,
-            isClosable: true,
-        });
         }
         catch (error){
-        toast({
-            title: 'Error',
-            description: 'Something went wrong. Please try again later.',
-            status: 'error',
-            duration: 9000,
-            isClosable: true,
-        });
+            console.log(error);
         }
     }
 
