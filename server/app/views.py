@@ -77,7 +77,6 @@ def get_topics():
         data = request.json
         topics = Topic.query.filter_by(room_code=data['code']).all()
         response = {'topics': [topic.to_json() for topic in topics]} 
-        #print(response)
         return ({'status': 'Succeess', 'data' : response}, 200)
     except:
         pass
@@ -92,6 +91,25 @@ def connect():
         emit('join_chat', response, broadcast=True, include_self=False, to=room)
     except:
         emit('error', {'message': 'Could not join room. Try joining again'}, to=request.sid)
+
+@socketio.on('leave')
+def leave(data):
+    print(data)
+    try:
+        user = User.query.get(data['id'])
+        room = Room.query.get(data['code'])
+        leave_room(data['code'])
+        db.session.delete(user)
+        if(len(room.users)):
+            response = {'user_id': 'admin', 'message': f"{data['name']} has left the room"}
+            emit('leave_chat', response, broadcast=True, include_self=False, to=data['code'])
+        else:
+            # we delete rooms that do not have users
+            db.session.delete(room)
+        db.session.commit()
+    except:
+        print('Error')
+
 
 @socketio.on('message')
 def message(data):
@@ -132,7 +150,6 @@ def add_topic(data):
         db.session.commit()
         topics = Topic.query.filter_by(room_code=data['code']).all()
         response = {'topics': [topic.to_json() for topic in topics]} 
-        #print(response)
         emit('topics', response, boradcast=True, to=data['code'])
     except:
         emit('error', {'message': 'Could not add topic. Try again'}, to=request.sid)
